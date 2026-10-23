@@ -1,1 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboratorio de fuerzas · Analizador experimental</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#667085;--line:#d0d5dd;--accent:#4f46e5;--soft:#eef2ff;--ok:#067647;--warn:#b54708;--err:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--ink)}
+.wrap{max-width:1180px;margin:auto;padding:24px}header{margin-bottom:18px}h1,h2,h3{margin-top:0}.lead{color:var(--muted);margin-top:-6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 4px 12px rgba(16,24,40,.04)}
+.step{display:inline-block;background:var(--soft);color:#3730a3;font-weight:700;padding:5px 9px;border-radius:999px;font-size:12px;margin-bottom:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.kpis div{background:#fafbff;border:1px solid var(--line);border-radius:10px;padding:10px;text-align:center}.kpis span{display:block;color:var(--muted);font-size:12px}.kpis b{font-size:18px}
+label{display:block;font-size:13px;color:var(--muted);margin:7px 0 4px}input,select,button{font:inherit}input,select{width:100%;padding:9px;border:1px solid var(--line);border-radius:9px;background:#fff}
+button{border:0;border-radius:10px;padding:10px 13px;background:var(--accent);color:white;font-weight:700;cursor:pointer}button.alt{background:#fff;color:var(--ink);border:1px solid var(--line)}button:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.msg{padding:10px 12px;border-radius:10px;margin-top:10px;font-size:14px}.ok{background:#ecfdf3;color:var(--ok);border:1px solid #abefc6}.warn{background:#fffaeb;color:var(--warn);border:1px solid #fedf89}.err{background:#fef3f2;color:var(--err);border:1px solid #fecdca}
+table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid var(--line);padding:8px;text-align:center}th{background:#f9fafb}canvas{width:100%;height:330px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.note{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:11px;font-size:14px}.challenge{background:#fafaff;border-left:4px solid var(--accent);border-radius:10px;padding:12px}.formula{font-size:24px;font-weight:700;text-align:center;padding:14px;background:#fafaff;border-radius:12px;margin:12px 0}.hidden{display:none}
+@media(max-width:800px){.grid2,.kpis{grid-template-columns:1fr}}
+
+.tabs-nav{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0 18px}
+.tab-btn{border:1px solid var(--line);background:#fff;color:#344054;border-radius:10px;padding:10px 8px;font-weight:700;cursor:pointer}
+.tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.rounding-note{margin-top:12px;background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;color:#475467}
+@media(max-width:800px){.tabs-nav{grid-template-columns:1fr 1fr}}
+
+</style>
+</head>
+<body><div class="wrap">
+<header><h1>Laboratorio de fuerzas · Analizador experimental</h1><p class="lead">Usa tus datos de PhET para identificar patrones, construir un modelo y ponerlo a prueba.</p></header>
+
+
+<nav class="tabs-nav" aria-label="Etapas del analizador">
+  <button class="tab-btn active" data-tab="tabA">1 · Fuerza</button>
+  <button class="tab-btn" data-tab="tabB">2 · Masa</button>
+  <button class="tab-btn" data-tab="tabModel">3 · Modelo</button>
+  <button class="tab-btn" data-tab="tabVerify">4 · Verifica</button>
+  <button class="tab-btn" data-tab="tabPredict">5 · Predice</button>
+</nav>
+
+<div id="tabA" class="tab-panel active"><section class="card">
+<span class="step">1 · Experimento A</span><h2>Cambia la fuerza y mantén la masa</h2><p>Introduce los tres ensayos que realizaste en PhET. La masa debe ser la misma y la fuerza debe cambiar.</p>
+<table><thead><tr><th>Ensayo</th><th>Masa (kg)</th><th>Fuerza neta (N)</th><th>Aceleración (m/s²)</th></tr></thead><tbody id="forceRows"></tbody></table>
+<div class="row"><button id="validateForce">Validar experimento A</button></div><div id="forceMsg"></div>
+<div id="forceAnalysis" class="hidden"><div class="grid2" style="margin-top:16px"><div><h3>Fuerza vs. aceleración</h3><canvas id="forceGraph" width="600" height="360"></canvas></div><div><h3>Analiza el patrón</h3><div class="note">Compara el ensayo con menor fuerza y el ensayo con mayor fuerza. Los factores mostrados son razones entre valores, no diferencias.</div><div class="kpis"><div><span>Fuerza mayor / fuerza menor</span><b id="forceFactor">—</b></div><div><span>Aceleración correspondiente: mayor / menor</span><b id="accFactorA">—</b></div><div><span>Masa usada</span><b id="massFixed">—</b></div></div><label>¿Qué relación describe mejor tus datos?</label><select id="forcePattern"><option value="">Selecciona una opción</option><option value="direct">Al aumentar la fuerza, la aceleración aumenta aproximadamente en la misma proporción.</option><option value="inverse">Al aumentar la fuerza, la aceleración disminuye.</option><option value="none">No se observa una relación clara.</option></select><div class="row"><button id="checkForcePattern">Comprobar</button></div><div id="forcePatternMsg"></div></div></div></div>
+</section></div>
+<div id="tabB" class="tab-panel"><section class="card">
+<span class="step">2 · Experimento B</span><h2>Cambia la masa y mantén la fuerza</h2><p>Introduce los tres ensayos que realizaste en PhET. La fuerza neta debe ser la misma y la masa debe cambiar.</p>
+<table><thead><tr><th>Ensayo</th><th>Fuerza neta (N)</th><th>Masa (kg)</th><th>Aceleración (m/s²)</th></tr></thead><tbody id="massRows"></tbody></table>
+<div class="row"><button id="validateMass">Validar experimento B</button></div><div id="massMsg"></div>
+<div id="massAnalysis" class="hidden"><div class="grid2" style="margin-top:16px"><div><h3>Masa vs. aceleración</h3><canvas id="massGraph" width="600" height="360"></canvas></div><div><h3>Analiza el patrón</h3><div class="note">Compara el ensayo con menor masa y el ensayo con mayor masa. Los factores mostrados son razones entre valores, no diferencias.</div><div class="kpis"><div><span>Masa mayor / masa menor</span><b id="massFactor">—</b></div><div><span>Aceleración con masa menor / con masa mayor</span><b id="accInverseFactor">—</b></div><div><span>Fuerza usada</span><b id="forceFixed">—</b></div></div><label>¿Qué relación describe mejor tus datos?</label><select id="massPattern"><option value="">Selecciona una opción</option><option value="inverse">Cuando la masa aumenta, la aceleración disminuye; parecen variar de manera inversa.</option><option value="direct">Cuando la masa aumenta, la aceleración también aumenta.</option><option value="none">No se observa una relación clara.</option></select><div class="row"><button id="checkMassPattern">Comprobar</button></div><div id="massPatternMsg"></div></div></div></div>
+</section></div>
+<div id="tabModel" class="tab-panel"><section class="card">
+<span class="step">3 · Combina los patrones</span><h2>Construye una sola relación</h2><p>Si la aceleración aumenta con la fuerza, pero disminuye cuando aumenta la masa, ¿qué modelo explica ambas observaciones al mismo tiempo?</p>
+<select id="modelA"><option value="">Selecciona un modelo</option><option value="correct">a = F / m</option><option value="mul">a = F · m</option><option value="swap">a = m / F</option><option value="sum">a = F + m</option></select><div class="row"><button id="checkModelA">Comprobar modelo</button></div><div id="modelAMsg"></div>
+<div id="rearrangeBox" class="hidden"><p>Ahora despeja la fuerza <b>F</b> de la relación que acabas de elegir.</p><select id="modelF"><option value="">Selecciona el despeje correcto</option><option value="correct">F = m · a</option><option value="wrong1">F = a / m</option><option value="wrong2">F = m / a</option><option value="wrong3">F = a + m</option></select><div class="row"><button id="checkModelF">Comprobar despeje</button></div><div id="modelFMsg"></div></div>
+
+<hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+<span class="step">Resultado</span><h2>Modelo construido</h2><div id="finalModel" class="note">Completa la actividad para revelar el modelo que construiste a partir de tus experimentos.</div></section></div>
+<div id="tabVerify" class="tab-panel"><section class="card">
+<span class="step">4 · Verifica el modelo</span><h2>Ahora sí: comprueba con tus propios datos</h2><div id="verifyLocked" class="note">Esta sección se habilitará cuando construyas correctamente el modelo.</div>
+<div id="verifyBox" class="hidden"><p>Tu modelo predice que la fuerza neta debe coincidir con el producto entre masa y aceleración. Ahora sí utilizaremos <b>m·a</b> como comprobación.</p><table><thead><tr><th>Ensayo</th><th>Masa</th><th>Aceleración</th><th>m·a</th><th>Fuerza neta</th></tr></thead><tbody id="verifyRows"></tbody></table><div class="kpis"><div><span>Promedio de m·a</span><b id="prodAvg">—</b></div><div><span>Fuerza experimental</span><b id="forceAvg">—</b></div><div><span>Diferencia relativa</span><b id="diffPct">—</b></div></div><div id="verifyMsg"></div>
+<div class="rounding-note"><b>Nota sobre la precisión:</b> pequeñas diferencias entre <i>m·a</i> y la fuerza neta pueden aparecer porque PhET muestra la aceleración con un número limitado de decimales. El modelo no es aproximado; la diferencia proviene del redondeo de los datos mostrados.</div></div>
+</section></div>
+<div id="tabPredict" class="tab-panel"><section class="card">
+<span class="step">5 · Predice y comprueba</span><h2>¿Tu modelo puede predecir un experimento nuevo?</h2><p>El desafío combinará una masa y una fuerza que ya utilizaste en PhET, pero en una nueva combinación.</p><div class="challenge"><p id="challengeText">Completa correctamente las etapas anteriores para generar un desafío.</p></div><div class="row"><button id="newChallenge" disabled>Generar desafío</button></div>
+<div id="challengeBox" class="hidden"><div class="grid2"><div><label>Aceleración predicha con tu modelo (m/s²)</label><input id="predA" type="number" step="0.01"></div><div><label>Aceleración observada al reproducir el caso en PhET (m/s²)</label><input id="obsA" type="number" step="0.01"></div></div><div class="row"><button id="compareChallenge">Comparar resultados</button></div><div id="challengeMsg"></div></div>
+</section></div>
+
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function row(prefix,i){return `<tr><td>${i}</td><td><input id="${prefix}${i}a" type="number" step="0.01"></td><td><input id="${prefix}${i}b" type="number" step="0.01"></td><td><input id="${prefix}${i}c" type="number" step="0.01"></td></tr>`}
+for(let i=1;i<=3;i++)$('forceRows').insertAdjacentHTML('beforeend',row('A',i));for(let i=1;i<=3;i++)$('massRows').insertAdjacentHTML('beforeend',row('B',i));
+let A=null,B=null,patternA=false,patternB=false,modelFOK=false,challenge=null;const tolerance=.025;
+function read(ids){const v=ids.map(id=>Number($(id).value));if(v.some(x=>!Number.isFinite(x)||x<=0))throw new Error('Completa los tres ensayos con valores positivos.');return v}
+function constant(arr){const avg=arr.reduce((s,x)=>s+x,0)/arr.length;return Math.max(...arr.map(x=>Math.abs(x-avg)))/avg<=tolerance}
+function distinct(arr){return new Set(arr.map(x=>x.toFixed(6))).size===arr.length}
+function message(id,type,text){const e=$(id);e.className='msg '+type;e.textContent=text}
+function sortedIndices(arr){return arr.map((v,i)=>[v,i]).sort((a,b)=>a[0]-b[0]).map(x=>x[1])}
+$('validateForce').onclick=()=>{try{const masses=read(['A1a','A2a','A3a']),forces=read(['A1b','A2b','A3b']),accels=read(['A1c','A2c','A3c']);if(!constant(masses)){message('forceMsg','err','La masa cambió entre ensayos. Regresa a PhET y repite el experimento manteniéndola constante.');$('forceAnalysis').classList.add('hidden');return}if(!distinct(forces)){message('forceMsg','err','Necesitas tres valores de fuerza diferentes.');return}A={masses,forces,accels};message('forceMsg','ok','✓ Experimento válido: controlaste la masa y modificaste la fuerza.');$('forceAnalysis').classList.remove('hidden');drawGraph('forceGraph',forces,accels,'Fuerza (N)','Aceleración (m/s²)');const ind=sortedIndices(forces),i=ind[0],j=ind[2];$('forceFactor').textContent=(forces[j]/forces[i]).toFixed(2)+'×';$('accFactorA').textContent=(accels[j]/accels[i]).toFixed(2)+'×';$('massFixed').textContent=(masses.reduce((s,x)=>s+x,0)/3).toFixed(2)+' kg'}catch(e){message('forceMsg','err',e.message)}};
+$('checkForcePattern').onclick=()=>{if(!$('forcePattern').value){message('forcePatternMsg','warn','Selecciona una opción.');return}patternA=$('forcePattern').value==='direct';message('forcePatternMsg',patternA?'ok':'warn',patternA?'✓ Tus datos apoyan una relación directa entre fuerza y aceleración.':'Observa nuevamente cómo cambian fuerza y aceleración cuando la masa permanece constante.')};
+$('validateMass').onclick=()=>{try{const forces=read(['B1a','B2a','B3a']),masses=read(['B1b','B2b','B3b']),accels=read(['B1c','B2c','B3c']);if(!constant(forces)){message('massMsg','err','La fuerza cambió entre ensayos. Regresa a PhET y repite el experimento manteniéndola constante.');$('massAnalysis').classList.add('hidden');return}if(!distinct(masses)){message('massMsg','err','Necesitas tres masas diferentes.');return}B={forces,masses,accels};message('massMsg','ok','✓ Experimento válido: controlaste la fuerza y modificaste la masa.');$('massAnalysis').classList.remove('hidden');drawGraph('massGraph',masses,accels,'Masa (kg)','Aceleración (m/s²)');const ind=sortedIndices(masses),i=ind[0],j=ind[2];$('massFactor').textContent=(masses[j]/masses[i]).toFixed(2)+'×';$('accInverseFactor').textContent=(accels[i]/accels[j]).toFixed(2)+'×';$('forceFixed').textContent=(forces.reduce((s,x)=>s+x,0)/3).toFixed(2)+' N'}catch(e){message('massMsg','err',e.message)}};
+$('checkMassPattern').onclick=()=>{if(!$('massPattern').value){message('massPatternMsg','warn','Selecciona una opción.');return}patternB=$('massPattern').value==='inverse';message('massPatternMsg',patternB?'ok':'warn',patternB?'✓ Tus datos apoyan una relación inversa entre masa y aceleración.':'Compara qué ocurre con la aceleración cuando la masa aumenta y la fuerza permanece constante.')};
+$('checkModelA').onclick=()=>{if(!(patternA&&patternB)){message('modelAMsg','warn','Primero identifica correctamente los patrones de ambos experimentos.');return}if(!$('modelA').value){message('modelAMsg','warn','Selecciona un modelo.');return}const ok=$('modelA').value==='correct';message('modelAMsg',ok?'ok':'warn',ok?'✓ Este modelo explica ambos patrones: aumenta con F y disminuye cuando aumenta m.':'Ese modelo no explica simultáneamente ambos experimentos.');$('rearrangeBox').classList.toggle('hidden',!ok)};
+$('checkModelF').onclick=()=>{if(!$('modelF').value){message('modelFMsg','warn','Selecciona un despeje.');return}modelFOK=$('modelF').value==='correct';if(modelFOK){message('modelFMsg','ok','✓ Correcto. Has construido la relación F = m·a.');buildVerification();$('verifyLocked').classList.add('hidden');$('verifyBox').classList.remove('hidden');$('newChallenge').disabled=false;$('finalModel').innerHTML='<div class="formula">F = m · a</div><p>Esta relación corresponde a la <b>segunda ley de Newton</b>.</p>'}else message('modelFMsg','warn','Revisa el despeje algebraico de a = F/m.')};
+function buildVerification(){if(!B)return;const products=B.masses.map((m,i)=>m*B.accels[i]);$('verifyRows').innerHTML='';for(let i=0;i<3;i++)$('verifyRows').insertAdjacentHTML('beforeend',`<tr><td>${i+1}</td><td>${B.masses[i].toFixed(2)}</td><td>${B.accels[i].toFixed(2)}</td><td>${products[i].toFixed(2)}</td><td>${B.forces[i].toFixed(2)}</td></tr>`);const pavg=products.reduce((s,x)=>s+x,0)/3,favg=B.forces.reduce((s,x)=>s+x,0)/3,diff=Math.abs(pavg-favg)/favg*100;$('prodAvg').textContent=pavg.toFixed(2);$('forceAvg').textContent=favg.toFixed(2)+' N';$('diffPct').textContent=diff.toFixed(1)+'%';message('verifyMsg',diff<=5?'ok':'warn',diff<=5?'✓ Tus datos son consistentes con el modelo F = m·a. Las pequeñas diferencias se deben al redondeo de la aceleración mostrada por PhET.':'Los valores no coinciden tanto como se esperaba. Revisa los datos registrados en PhET.')}
+$('newChallenge').onclick=()=>{if(!(modelFOK&&A&&B))return;const masses=[...new Set(B.masses)],forces=[...new Set(A.forces)];const m=masses[Math.floor(Math.random()*masses.length)],F=forces[Math.floor(Math.random()*forces.length)];challenge={m,F,trueA:F/m};$('challengeText').innerHTML=`Usa una masa de <b>${m} kg</b> y una fuerza neta de <b>${F} N</b>.<br><br>Primero predice la aceleración con tu modelo. Después regresa a PhET, reproduce esta nueva combinación y registra la aceleración observada.`;$('challengeBox').classList.remove('hidden');$('predA').value='';$('obsA').value='';$('challengeMsg').className='';$('challengeMsg').textContent=''};
+$('compareChallenge').onclick=()=>{if(!challenge)return;const p=Number($('predA').value),o=Number($('obsA').value);if(!Number.isFinite(p)||!Number.isFinite(o)){message('challengeMsg','warn','Completa la aceleración predicha y la observada en PhET.');return}const calcErr=Math.abs(p-challenge.trueA),expErr=Math.abs(o-p);if(calcErr<=.05&&expErr<=Math.max(.15,Math.abs(p)*.05))message('challengeMsg','ok',`✓ Tu modelo predijo el nuevo experimento. Predicción: ${p.toFixed(2)} m/s² · PhET: ${o.toFixed(2)} m/s².`);else if(calcErr>.05)message('challengeMsg','warn','La predicción matemática no coincide con el modelo a = F/m. Revisa tu cálculo.');else message('challengeMsg','warn','Tu cálculo es correcto, pero el valor de PhET difiere. Revisa que hayas reproducido exactamente la masa, la fuerza y fricción cero.')};
+function drawGraph(id,xs,ys,xlabel,ylabel){const c=$(id),ctx=c.getContext('2d'),W=c.width,H=c.height,p=58;ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);const xmax=Math.max(...xs)*1.15||1,ymax=Math.max(...ys)*1.15||1,X=x=>p+(x/xmax)*(W-p-25),Y=y=>H-p-(y/ymax)*(H-p-25);ctx.strokeStyle='#98a2b3';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p,20);ctx.lineTo(p,H-p);ctx.lineTo(W-20,H-p);ctx.stroke();ctx.fillStyle='#667085';ctx.font='14px Arial';ctx.fillText(xlabel,W/2-35,H-14);ctx.save();ctx.translate(16,H/2+45);ctx.rotate(-Math.PI/2);ctx.fillText(ylabel,0,0);ctx.restore();const idx=sortedIndices(xs);ctx.strokeStyle='#c7d2fe';ctx.lineWidth=2;ctx.beginPath();idx.forEach((i,k)=>{k?ctx.lineTo(X(xs[i]),Y(ys[i])):ctx.moveTo(X(xs[i]),Y(ys[i]))});ctx.stroke();xs.forEach((x,i)=>{ctx.beginPath();ctx.arc(X(x),Y(ys[i]),6,0,Math.PI*2);ctx.fillStyle='#4f46e5';ctx.fill();ctx.fillStyle='#344054';ctx.font='12px Arial';ctx.fillText(`(${x}, ${ys[i]})`,X(x)+7,Y(ys[i])-7)})}
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    const panel=document.getElementById(btn.dataset.tab);
+    if(panel) panel.classList.add('active');
+  });
+});
+
+</script></body></html>
 
